@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reazyn — Test User</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3f9;
+    --surface: #ffffff;
+    --surface2: #ede9f6;
+    --border: #d9d3eb;
+    --accent: #6b45b8;
+    --accent2: #9270d8;
+    --accent-glow: rgba(107, 69, 184, 0.1);
+    --text: #1a1626;
+    --text-dim: #5a5270;
+    --text-dimmer: #9b93b0;
+    --green: #1a8a5a;
+    --red: #cc3333;
+    --nav-bg: rgba(245, 243, 249, 0.92);
+  }
+
+  :root.dark {
+    --bg: #0f0e11;
+    --surface: #1a1820;
+    --surface2: #22202a;
+    --border: #2e2b38;
+    --accent: #c8b8ff;
+    --accent2: #7c5cbf;
+    --accent-glow: rgba(200, 184, 255, 0.15);
+    --text: #ede9f6;
+    --text-dim: #8b8499;
+    --text-dimmer: #4f4a5c;
+    --green: #6fefb8;
+    --red: #ff7b7b;
+    --nav-bg: rgba(15, 14, 17, 0.88);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center;
+    padding: 0 2.5rem; height: 60px;
+    border-bottom: 1px solid var(--border);
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+    gap: 2rem;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .nav-brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 0.02em; white-space: nowrap; margin-right: auto; text-decoration: none; }
+  .nav-links { display: flex; gap: 0.25rem; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--text-dim); font-size: 0.88rem; font-weight: 500; padding: 0.4rem 0.9rem; border-radius: 6px; transition: all 0.18s; }
+  .nav-links a:hover { color: var(--text); background: var(--surface2); }
+  .nav-links a.active { color: var(--accent); background: var(--accent-glow); }
+  .nav-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+
+  .theme-toggle { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; font-size: 0.95rem; }
+  .theme-toggle:hover { border-color: var(--accent2); color: var(--accent); background: var(--accent-glow); }
+
+  .nav-user { position: relative; display: flex; align-items: center; gap: 0.55rem; font-size: 0.85rem; color: var(--text-dim); font-weight: 500; cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid transparent; transition: all 0.18s; user-select: none; }
+  .nav-user:hover, .nav-user.open { background: var(--surface2); border-color: var(--border); }
+  .avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600; color: #fff; flex-shrink: 0; }
+
+  .profile-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 200; overflow: hidden; animation: dropIn 0.18s ease forwards; }
+  :root.dark .profile-dropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  @keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .nav-user.open .profile-dropdown { display: block; }
+  .dropdown-header { padding: 0.9rem 1rem 0.7rem; border-bottom: 1px solid var(--border); }
+  .dropdown-name { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .dropdown-handle { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dimmer); margin-top: 0.15rem; }
+  .dropdown-items { padding: 0.4rem 0; }
+  .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--text-dim); cursor: pointer; transition: background 0.13s, color 0.13s; text-decoration: none; }
+  .dropdown-item:hover { background: var(--surface2); color: var(--text); }
+  .dropdown-item.signout { border-top: 1px solid var(--border); margin-top: 0.3rem; color: var(--red); }
+  .dropdown-item.signout:hover { background: rgba(204,51,51,0.06); color: var(--red); }
+  .dropdown-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+
+  /* BANNER */
+  .banner {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #3d1f7a 0%, #6b45b8 40%, #9270d8 70%, #c8a8ff 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(ellipse 60% 80% at 80% 50%, rgba(255,255,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(0,0,0,0.15) 0%, transparent 50%);
+  }
+
+  /* PROFILE LAYOUT */
+  .profile-wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 0 2rem 5rem;
+  }
+
+  /* PROFILE HEADER */
+  .profile-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-top: 0;
+    position: relative;
+  }
+
+  .profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #fff;
+    flex-shrink: 0;
+    margin-top: -48px;
+    border: 4px solid var(--bg);
+    transition: border-color 0.3s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  .profile-meta { flex: 1; padding-bottom: 0.2rem; }
+
+  .profile-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 0.2rem;
+  }
+
+  .profile-handle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.03em;
+  }
+
+  .profile-affiliation {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border: 1px solid rgba(107, 69, 184, 0.2);
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+  }
+
+  :root.dark .profile-affiliation {
+    border-color: rgba(200, 184, 255, 0.2);
+  }
+
+  /* MAIN CONTENT */
+  .profile-body {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .profile-left { display: flex; flex-direction: column; gap: 1.2rem; }
+  .profile-right { display: flex; flex-direction: column; gap: 1.2rem; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    margin-bottom: 0.8rem;
+  }
+
+  /* BIO */
+  .bio-text {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    padding: 1.1rem 1.2rem;
+    text-align: center;
+    transition: background 0.3s;
+  }
+
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+  }
+
+  /* RADAR CHART */
+  .radar-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
+  }
+
+  /* FRIENDS */
+  .friend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .friend-item:last-child { border-bottom: none; }
+  .friend-item:hover { opacity: 0.75; }
+
+  .friend-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a7a6e, #6fefcf);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .friend-info { flex: 1; }
+
+  .friend-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .friend-handle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dimmer);
+  }
+
+  /* SKILL ROWS in radar card fallback */
+  .skill-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .skill-row:last-child { margin-bottom: 0; }
+
+  .skill-name {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    width: 130px;
+    flex-shrink: 0;
+  }
+
+  .skill-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .skill-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .skill-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dimmer);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  canvas { display: block; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="https://daj0n.github.io/Reazyn/index.html">Reazyn</a>
+  <ul class="nav-links">
+    <li><a href="https://daj0n.github.io/Reazyn/index.html">Play</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/learn.html">Learn</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/community.html">Community</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/leaderboard.html">Leaderboard</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    <div class="nav-user" id="nav-user" onclick="toggleProfile(event)">
+      <div class="avatar-sm">TU</div>
+      Test User
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-name">Test User</div>
+          <div class="dropdown-handle">@testuser</div>
+        </div>
+        <div class="dropdown-items">
+          <a href="https://daj0n.github.io/Reazyn/profile.html" class="dropdown-item"><span class="dropdown-icon">👤</span> Profile</a>
+          <a href="#" class="dropdown-item"><span class="dropdown-icon">👥</span> Friends</a>
+          <a href="#" class="dropdown-item"><span class="dropdown-icon">💬</span> Chats</a>
+          <a href="#" class="dropdown-item signout"><span class="dropdown-icon">↩</span> Sign out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- BANNER -->
+<div class="banner"></div>
+
+<div class="profile-wrap">
+
+  <!-- PROFILE HEADER -->
+  <div class="profile-header">
+    <div class="profile-avatar">TU</div>
+    <div class="profile-meta">
+      <div class="profile-name">Test User</div>
+      <div class="profile-handle">@testuser</div>
+      <div class="profile-affiliation">⬡ Reazyn Beta Testers</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" style="margin-bottom:1.5rem;">
+    <div class="stat-item">
+      <div class="stat-num">247</div>
+      <div class="stat-lbl">Score</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">84%</div>
+      <div class="stat-lbl">Accuracy</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">12</div>
+      <div class="stat-lbl">Day Streak</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="profile-body">
+
+    <!-- LEFT -->
+    <div class="profile-left">
+
+      <!-- BIO -->
+      <div class="card">
+        <div class="card-label">Bio</div>
+        <p class="bio-text">In this Bio section of your profile, you can add any information you want, whether it pertains to your personal life, your hobbies, a quote, a joke, or anything you want.</p>
+      </div>
+
+      <!-- SKILL RADAR -->
+      <div class="card">
+        <div class="card-label">Reasoning Profile</div>
+        <div class="radar-wrap">
+          <canvas id="radarChart" width="400" height="340"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="profile-right">
+
+      <!-- FRIENDS -->
+      <div class="card">
+        <div class="card-label">Friends</div>
+        <div class="friend-item">
+          <div class="friend-avatar">D</div>
+          <div class="friend-info">
+            <div class="friend-name">Dajon</div>
+            <div class="friend-handle">@dajon</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKILL BARS (compact companion to radar) -->
+      <div class="card">
+        <div class="card-label">Skill Breakdown</div>
+
+        <div class="skill-row">
+          <span class="skill-name">Deductive Logic</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="78%"></div></div>
+          <span class="skill-pct">78%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Inductive Logic</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="55%"></div></div>
+          <span class="skill-pct">55%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Abductive Logic</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="62%"></div></div>
+          <span class="skill-pct">62%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Biases &amp; Fallacies</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="70%"></div></div>
+          <span class="skill-pct">70%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Critical Thinking</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="65%"></div></div>
+          <span class="skill-pct">65%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Abstract Thinking</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="40%"></div></div>
+          <span class="skill-pct">40%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Strategic Thinking</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="48%"></div></div>
+          <span class="skill-pct">48%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Metacognitive</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="52%"></div></div>
+          <span class="skill-pct">52%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Mental Models</span>
+          <div class="skill-bar-wrap"><div class="skill-bar" style="width:0%" data-width="44%"></div></div>
+          <span class="skill-pct">44%</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- THEME ---
+  function toggleTheme() {
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const isDark = root.classList.toggle('dark');
+    btn.textContent = isDark ? '🌙' : '☀️';
+    drawRadar();
+  }
+
+  function toggleProfile(e) {
+    e.stopPropagation();
+    document.getElementById('nav-user').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('nav-user').classList.remove('open');
+  });
+
+  // --- SKILL BARS ANIMATE ---
+  setTimeout(() => {
+    document.querySelectorAll('.skill-bar').forEach(bar => {
+      bar.style.width = bar.dataset.width;
+    });
+  }, 200);
+
+  // --- RADAR CHART ---
+  const skills = [
+    { label: 'Deductive',   value: 0.78 },
+    { label: 'Inductive',   value: 0.55 },
+    { label: 'Abductive',   value: 0.62 },
+    { label: 'Biases',      value: 0.70 },
+    { label: 'Critical',    value: 0.65 },
+    { label: 'Abstract',    value: 0.40 },
+    { label: 'Strategic',   value: 0.48 },
+    { label: 'Metacognitive', value: 0.52 },
+    { label: 'Mental\nModels', value: 0.44 },
+  ];
+
+  function getColors() {
+    const dark = document.documentElement.classList.contains('dark');
+    return {
+      grid:    dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
+      label:   dark ? '#8b8499' : '#9b93b0',
+      fill:    dark ? 'rgba(200,184,255,0.18)' : 'rgba(107,69,184,0.12)',
+      stroke:  dark ? '#c8b8ff' : '#6b45b8',
+      dot:     dark ? '#c8b8ff' : '#6b45b8',
+      dotBg:   dark ? '#1a1820' : '#ffffff',
+    };
+  }
+
+  function drawRadar() {
+    const canvas = document.getElementById('radarChart');
+    const ctx = canvas.getContext('2d');
+
+    // Scale canvas for device pixel ratio — fixes blurry text on Retina/HiDPI screens
+    const dpr = window.devicePixelRatio || 1;
+    const displayW = 400;
+    const displayH = 340;
+    canvas.width  = displayW * dpr;
+    canvas.height = displayH * dpr;
+    canvas.style.width  = displayW + 'px';
+    canvas.style.height = displayH + 'px';
+    ctx.scale(dpr, dpr);
+
+    const W = displayW;
+    const H = displayH;
+    const cx = W / 2;
+    const cy = H / 2 + 10;
+    const R = Math.min(W, H) / 2 - 60;
+    const N = skills.length;
+    const c = getColors();
+
+    ctx.clearRect(0, 0, W, H);
+
+    const angle = (i) => (Math.PI * 2 * i) / N - Math.PI / 2;
+
+    // Grid rings
+    [0.25, 0.5, 0.75, 1].forEach(r => {
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const a = angle(i);
+        const x = cx + Math.cos(a) * R * r;
+        const y = cy + Math.sin(a) * R * r;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = c.grid;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Spokes
+    for (let i = 0; i < N; i++) {
+      const a = angle(i);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+      ctx.strokeStyle = c.grid;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Data polygon
+    ctx.beginPath();
+    skills.forEach((s, i) => {
+      const a = angle(i);
+      const x = cx + Math.cos(a) * R * s.value;
+      const y = cy + Math.sin(a) * R * s.value;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = c.fill;
+    ctx.fill();
+    ctx.strokeStyle = c.stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Dots
+    skills.forEach((s, i) => {
+      const a = angle(i);
+      const x = cx + Math.cos(a) * R * s.value;
+      const y = cy + Math.sin(a) * R * s.value;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = c.dotBg;
+      ctx.fill();
+      ctx.strokeStyle = c.dot;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+
+    // Labels — crisp because we're drawing at native resolution
+    ctx.font = '11px DM Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = c.label;
+
+    skills.forEach((s, i) => {
+      const a = angle(i);
+      const labelR = R + 38;
+      const x = cx + Math.cos(a) * labelR;
+      const y = cy + Math.sin(a) * labelR;
+      const lines = s.label.split('\n');
+      lines.forEach((line, li) => {
+        ctx.fillText(line, x, y + (li - (lines.length - 1) / 2) * 14);
+      });
+    });
+  }
+
+  // Draw after fonts load
+  document.fonts.ready.then(() => {
+    drawRadar();
+    // Animate on load
+    setTimeout(() => {
+      document.querySelectorAll('.skill-bar').forEach(bar => {
+        bar.style.width = bar.dataset.width;
+      });
+    }, 100);
+  });
+</script>
+</body>
+</html>
