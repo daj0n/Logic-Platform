@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reazyn — Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3f9;
+    --surface: #ffffff;
+    --surface2: #ede9f6;
+    --border: #d9d3eb;
+    --accent: #6b45b8;
+    --accent2: #9270d8;
+    --accent-glow: rgba(107, 69, 184, 0.1);
+    --text: #1a1626;
+    --text-dim: #5a5270;
+    --text-dimmer: #9b93b0;
+    --green: #1a8a5a;
+    --red: #cc3333;
+    --nav-bg: rgba(245, 243, 249, 0.92);
+  }
+
+  :root.dark {
+    --bg: #0f0e11;
+    --surface: #1a1820;
+    --surface2: #22202a;
+    --border: #2e2b38;
+    --accent: #c8b8ff;
+    --accent2: #7c5cbf;
+    --accent-glow: rgba(200, 184, 255, 0.15);
+    --text: #ede9f6;
+    --text-dim: #8b8499;
+    --text-dimmer: #4f4a5c;
+    --green: #6fefb8;
+    --red: #ff7b7b;
+    --nav-bg: rgba(15, 14, 17, 0.88);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+    background-image:
+      radial-gradient(ellipse 55% 35% at 75% -5%, rgba(146, 112, 216, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 35% 25% at 5% 85%, rgba(107, 69, 184, 0.06) 0%, transparent 55%);
+  }
+
+  :root.dark body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 70% -10%, rgba(124, 92, 191, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(200, 184, 255, 0.06) 0%, transparent 60%);
+  }
+
+  nav {
+    display: flex; align-items: center;
+    padding: 0 2.5rem; height: 60px;
+    border-bottom: 1px solid var(--border);
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+    gap: 2rem;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .nav-brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 0.02em; white-space: nowrap; margin-right: auto; text-decoration: none; }
+  .nav-links { display: flex; gap: 0.25rem; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--text-dim); font-size: 0.88rem; font-weight: 500; padding: 0.4rem 0.9rem; border-radius: 6px; transition: all 0.18s; }
+  .nav-links a:hover { color: var(--text); background: var(--surface2); }
+  .nav-links a.active { color: var(--accent); background: var(--accent-glow); }
+  .nav-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+
+  .theme-toggle { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; font-size: 0.95rem; }
+  .theme-toggle:hover { border-color: var(--accent2); color: var(--accent); background: var(--accent-glow); }
+
+  .nav-user { position: relative; display: flex; align-items: center; gap: 0.55rem; font-size: 0.85rem; color: var(--text-dim); font-weight: 500; cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid transparent; transition: all 0.18s; user-select: none; }
+  .nav-user:hover, .nav-user.open { background: var(--surface2); border-color: var(--border); }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600; color: #fff; flex-shrink: 0; }
+
+  .profile-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 200; overflow: hidden; animation: dropIn 0.18s ease forwards; }
+  :root.dark .profile-dropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  @keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .nav-user.open .profile-dropdown { display: block; }
+  .dropdown-header { padding: 0.9rem 1rem 0.7rem; border-bottom: 1px solid var(--border); }
+  .dropdown-name { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .dropdown-handle { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dimmer); margin-top: 0.15rem; }
+  .dropdown-items { padding: 0.4rem 0; }
+  .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--text-dim); cursor: pointer; transition: background 0.13s, color 0.13s; text-decoration: none; }
+  .dropdown-item:hover { background: var(--surface2); color: var(--text); }
+  .dropdown-item.signout { border-top: 1px solid var(--border); margin-top: 0.3rem; color: var(--red); }
+  .dropdown-item.signout:hover { background: rgba(204,51,51,0.06); color: var(--red); }
+  .dropdown-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+
+  /* PAGE */
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem 6rem;
+  }
+
+  .page-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title em { font-style: italic; color: var(--accent); }
+
+  .lead {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    line-height: 1.75;
+    margin-bottom: 3rem;
+    max-width: 640px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 3rem 0;
+  }
+
+  /* SUBJECT CARDS */
+  .subjects {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .subject-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    transition: background 0.3s, border-color 0.2s;
+  }
+
+  .subject-icon {
+    font-size: 1.3rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .subject-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+
+  .subject-desc {
+    font-size: 0.78rem;
+    color: var(--text-dimmer);
+    line-height: 1.5;
+  }
+
+  /* VISION BLOCK */
+  .vision-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 12px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .vision-block p {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+
+  .vision-block p:last-child { margin-bottom: 0; }
+
+  .vision-block strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* STATUS BADGE */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--text-dimmer);
+    border: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="https://daj0n.github.io/Reazyn/index.html">Reazyn</a>
+  <ul class="nav-links">
+    <li><a href="https://daj0n.github.io/Reazyn/index.html">Play</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/learn.html" class="active">Learn</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/community.html">Community</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/leaderboard.html">Leaderboard</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    <div class="nav-user" id="nav-user" onclick="toggleProfile(event)">
+      <div class="avatar">TU</div>
+      Test User
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-name">Test User</div>
+          <div class="dropdown-handle">@testuser</div>
+        </div>
+        <div class="dropdown-items">
+          <a href="#" class="dropdown-item"><span class="dropdown-icon">👤</span> Profile</a>
+          <a href="#" class="dropdown-item"><span class="dropdown-icon">👥</span> Friends</a>
+          <a href="#" class="dropdown-item"><span class="dropdown-icon">💬</span> Chats</a>
+          <a href="#" class="dropdown-item signout"><span class="dropdown-icon">↩</span> Sign out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="page-label">Coming Soon</div>
+  <h1 class="page-title">One place to learn<br><em>every dimension of reasoning.</em></h1>
+
+  <div class="status-badge"><span class="status-dot"></span> In Development</div>
+
+  <p class="lead">
+    The Learn section will be the study companion to everything you practice in Play, eliminating the need to jump between textbooks or courses. It will all be centralized here.
+  </p>
+
+  <div class="subjects">
+    <div class="subject-card">
+      <div class="subject-icon">⊢</div>
+      <div class="subject-name">Deductive Logic</div>
+      <div class="subject-desc">The rules of inference that guarantee conclusions from premises.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">∴</div>
+      <div class="subject-name">Inductive Logic</div>
+      <div class="subject-desc">How evidence and patterns build toward probable conclusions.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">◈</div>
+      <div class="subject-name">Abductive Logic</div>
+      <div class="subject-desc">Reasoning to the best explanation when information is incomplete.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">⚠</div>
+      <div class="subject-name">Biases &amp; Fallacies</div>
+      <div class="subject-desc">The patterns that corrupt reasoning — and how to recognize them.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">◎</div>
+      <div class="subject-name">Critical Thinking</div>
+      <div class="subject-desc">Applied evaluation of arguments, evidence, and conclusions.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">◇</div>
+      <div class="subject-name">Abstract Thinking</div>
+      <div class="subject-desc">Reasoning with pure concepts, free from concrete examples.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">♟</div>
+      <div class="subject-name">Strategic Thinking</div>
+      <div class="subject-desc">Long-range reasoning across time, risk, and competing interests.</div>
+    </div>
+    <div class="subject-card">
+      <div class="subject-icon">⬡</div>
+      <div class="subject-name">Mental Models</div>
+      <div class="subject-desc">Frameworks from across disciplines for understanding how things work.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="vision-block">
+    <p>
+      The ideal version of this section will be written by professors, logicians, philosophers, cognitive scientists, authors, and experts of the like.
+    </p>
+    <p>
+      Realistically, this will be written by the founder of Reazyn, someone who is learning these subjects deeply alongside you. The explanations will be practical and written for someone who wants to actually use this knowledge, not just pass an exam.
+    </p>
+    <p>
+      Every subject covered in Play will have a corresponding Learn entry. You will always be able to read before you practice, practice while you read, or re-read when you get something wrong.
+    </p>
+  </div>
+
+</main>
+
+<script>
+  function toggleProfile(e) {
+    e.stopPropagation();
+    document.getElementById('nav-user').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('nav-user').classList.remove('open');
+  });
+
+  function toggleTheme() {
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const isDark = root.classList.toggle('dark');
+    btn.textContent = isDark ? '🌙' : '☀️';
+  }
+</script>
+</body>
+</html>
