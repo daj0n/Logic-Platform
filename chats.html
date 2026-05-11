@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reazyn — Chats</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3f9;
+    --surface: #ffffff;
+    --surface2: #ede9f6;
+    --border: #d9d3eb;
+    --accent: #6b45b8;
+    --accent2: #9270d8;
+    --accent-glow: rgba(107, 69, 184, 0.1);
+    --text: #1a1626;
+    --text-dim: #5a5270;
+    --text-dimmer: #9b93b0;
+    --green: #1a8a5a;
+    --red: #cc3333;
+    --nav-bg: rgba(245, 243, 249, 0.92);
+    --bubble-out: #6b45b8;
+    --bubble-out-text: #ffffff;
+    --bubble-in: #ede9f6;
+    --bubble-in-text: #1a1626;
+  }
+
+  :root.dark {
+    --bg: #0f0e11;
+    --surface: #1a1820;
+    --surface2: #22202a;
+    --border: #2e2b38;
+    --accent: #c8b8ff;
+    --accent2: #7c5cbf;
+    --accent-glow: rgba(200, 184, 255, 0.15);
+    --text: #ede9f6;
+    --text-dim: #8b8499;
+    --text-dimmer: #4f4a5c;
+    --green: #6fefb8;
+    --red: #ff7b7b;
+    --nav-bg: rgba(15, 14, 17, 0.88);
+    --bubble-out: #7c5cbf;
+    --bubble-out-text: #ffffff;
+    --bubble-in: #22202a;
+    --bubble-in-text: #ede9f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center;
+    padding: 0 2.5rem; height: 60px;
+    border-bottom: 1px solid var(--border);
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+    gap: 2rem;
+    flex-shrink: 0;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .nav-brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 0.02em; white-space: nowrap; margin-right: auto; text-decoration: none; }
+  .nav-links { display: flex; gap: 0.25rem; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--text-dim); font-size: 0.88rem; font-weight: 500; padding: 0.4rem 0.9rem; border-radius: 6px; transition: all 0.18s; }
+  .nav-links a:hover { color: var(--text); background: var(--surface2); }
+  .nav-links a.active { color: var(--accent); background: var(--accent-glow); }
+  .nav-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+
+  .theme-toggle { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; font-size: 0.95rem; }
+  .theme-toggle:hover { border-color: var(--accent2); color: var(--accent); background: var(--accent-glow); }
+
+  .nav-user { position: relative; display: flex; align-items: center; gap: 0.55rem; font-size: 0.85rem; color: var(--text-dim); font-weight: 500; cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid transparent; transition: all 0.18s; user-select: none; }
+  .nav-user:hover, .nav-user.open { background: var(--surface2); border-color: var(--border); }
+  .avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600; color: #fff; flex-shrink: 0; }
+
+  .profile-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 200; overflow: hidden; animation: dropIn 0.18s ease forwards; }
+  :root.dark .profile-dropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  @keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .nav-user.open .profile-dropdown { display: block; }
+  .dropdown-header { padding: 0.9rem 1rem 0.7rem; border-bottom: 1px solid var(--border); }
+  .dropdown-name { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .dropdown-handle { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dimmer); margin-top: 0.15rem; }
+  .dropdown-items { padding: 0.4rem 0; }
+  .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--text-dim); cursor: pointer; transition: background 0.13s, color 0.13s; text-decoration: none; }
+  .dropdown-item:hover { background: var(--surface2); color: var(--text); }
+  .dropdown-item.signout { border-top: 1px solid var(--border); margin-top: 0.3rem; color: var(--red); }
+  .dropdown-item.signout:hover { background: rgba(204,51,51,0.06); color: var(--red); }
+  .dropdown-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+
+  /* CHAT LAYOUT */
+  .chat-container {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .chat-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .sidebar-header {
+    padding: 1.2rem 1.4rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+
+  .sidebar-search {
+    position: relative;
+  }
+
+  .sidebar-search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.18s, background 0.3s;
+  }
+
+  .sidebar-search-input:focus { border-color: var(--accent2); }
+  .sidebar-search-input::placeholder { color: var(--text-dimmer); }
+  .sidebar-search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--text-dimmer); font-size: 0.75rem; pointer-events: none; }
+
+  .chat-list { flex: 1; overflow-y: auto; }
+
+  /* CHAT LIST ITEM */
+  .chat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1.4rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .chat-item:hover { background: var(--surface2); }
+  .chat-item.active { background: var(--accent-glow); }
+
+  .chat-item-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .chat-online-dot {
+    position: absolute;
+    bottom: 1px; right: 1px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--surface);
+    transition: border-color 0.3s;
+  }
+
+  .chat-item.active .chat-online-dot { border-color: var(--accent-glow); }
+
+  .chat-item-info { flex: 1; min-width: 0; }
+
+  .chat-item-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+  }
+
+  .chat-item-preview {
+    font-size: 0.78rem;
+    color: var(--text-dimmer);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-item-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0.15rem;
+  }
+
+  .unread-badge {
+    position: absolute;
+    right: 1.4rem;
+    bottom: 0.9rem;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* PLACEHOLDER CHAT ITEM */
+  .chat-item.placeholder { opacity: 0.45; cursor: default; }
+  .chat-item.placeholder:hover { background: transparent; }
+
+  .placeholder-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    color: var(--text-dimmer);
+    flex-shrink: 0;
+  }
+
+  /* MAIN CHAT AREA */
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    transition: background 0.3s;
+  }
+
+  /* CHAT HEADER */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.8rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .chat-header-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a7a6e, #6fefcf);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 0.95rem;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .chat-header-dot {
+    position: absolute;
+    bottom: 1px; right: 1px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--surface);
+    transition: border-color 0.3s;
+  }
+
+  .chat-header-info { flex: 1; }
+
+  .chat-header-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .chat-header-status {
+    font-size: 0.72rem;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  /* MESSAGES */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .msg-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .msg-group.out { align-items: flex-end; }
+  .msg-group.in  { align-items: flex-start; }
+
+  .msg-sender-label {
+    font-size: 0.68rem;
+    color: var(--text-dimmer);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 0.15rem;
+    padding: 0 0.4rem;
+  }
+
+  .msg-bubble {
+    max-width: 68%;
+    padding: 0.65rem 1rem;
+    border-radius: 18px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  .msg-group.out .msg-bubble {
+    background: var(--bubble-out);
+    color: var(--bubble-out-text);
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg-group.in .msg-bubble {
+    background: var(--bubble-in);
+    color: var(--bubble-in-text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dimmer);
+    padding: 0 0.4rem;
+    margin-top: 0.1rem;
+  }
+
+  .date-divider {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0.8rem 0;
+    position: relative;
+  }
+
+  .date-divider::before, .date-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .date-divider::before { left: 0; }
+  .date-divider::after { right: 0; }
+
+  /* INPUT */
+  .chat-input-wrap {
+    padding: 1rem 1.8rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 0.65rem 1.1rem;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.18s, background 0.3s;
+    resize: none;
+  }
+
+  .chat-input:focus { border-color: var(--accent2); }
+  .chat-input::placeholder { color: var(--text-dimmer); }
+
+  .send-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.18s;
+    flex-shrink: 0;
+    color: #fff;
+  }
+
+  .send-btn:hover { background: var(--accent2); transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="https://daj0n.github.io/Reazyn/index.html">Reazyn</a>
+  <ul class="nav-links">
+    <li><a href="https://daj0n.github.io/Reazyn/index.html">Play</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/learn.html">Learn</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/community.html">Community</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/leaderboard.html">Leaderboard</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    <div class="nav-user" id="nav-user" onclick="toggleProfile(event)">
+      <div class="avatar-sm">TU</div>
+      Test User
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-name">Test User</div>
+          <div class="dropdown-handle">@testuser</div>
+        </div>
+        <div class="dropdown-items">
+          <a href="https://daj0n.github.io/Reazyn/profile.html" class="dropdown-item"><span class="dropdown-icon">👤</span> Profile</a>
+          <a href="https://daj0n.github.io/Reazyn/friends.html" class="dropdown-item"><span class="dropdown-icon">👥</span> Friends</a>
+          <a href="https://daj0n.github.io/Reazyn/chats.html" class="dropdown-item"><span class="dropdown-icon">💬</span> Chats</a>
+          <a href="#" class="dropdown-item signout"><span class="dropdown-icon">↩</span> Sign out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="chat-container">
+
+  <!-- SIDEBAR -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Messages</div>
+      <div class="sidebar-search">
+        <span class="sidebar-search-icon">🔍</span>
+        <input class="sidebar-search-input" type="text" placeholder="Search messages...">
+      </div>
+    </div>
+
+    <div class="chat-list">
+
+      <!-- Dajon — active -->
+      <div class="chat-item active" onclick="selectChat('dajon')">
+        <div class="chat-item-avatar" style="background: linear-gradient(135deg, #1a7a6e, #6fefcf);">
+          D
+          <span class="chat-online-dot"></span>
+        </div>
+        <div class="chat-item-info">
+          <div class="chat-item-name">Dajon</div>
+          <div class="chat-item-preview">of course, happy to help!</div>
+        </div>
+        <div class="chat-item-time">2m</div>
+      </div>
+
+      <!-- Placeholder 1 -->
+      <div class="chat-item placeholder">
+        <div class="placeholder-avatar">👤</div>
+        <div class="chat-item-info">
+          <div class="chat-item-name" style="color:var(--text-dimmer); font-style:italic;">Person here</div>
+          <div class="chat-item-preview">Message preview...</div>
+        </div>
+        <div class="chat-item-time">—</div>
+      </div>
+
+      <!-- Placeholder 2 -->
+      <div class="chat-item placeholder">
+        <div class="placeholder-avatar">👤</div>
+        <div class="chat-item-info">
+          <div class="chat-item-name" style="color:var(--text-dimmer); font-style:italic;">Person here</div>
+          <div class="chat-item-preview">Message preview...</div>
+        </div>
+        <div class="chat-item-time">—</div>
+      </div>
+
+      <!-- Placeholder 3 -->
+      <div class="chat-item placeholder">
+        <div class="placeholder-avatar">👤</div>
+        <div class="chat-item-info">
+          <div class="chat-item-name" style="color:var(--text-dimmer); font-style:italic;">Person here</div>
+          <div class="chat-item-preview">Message preview...</div>
+        </div>
+        <div class="chat-item-time">—</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN CHAT -->
+  <div class="chat-main">
+
+    <!-- CHAT HEADER -->
+    <div class="chat-header">
+      <div class="chat-header-avatar">
+        D
+        <span class="chat-header-dot"></span>
+      </div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">Dajon</div>
+        <div class="chat-header-status">Active now</div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="chat-messages" id="chat-messages">
+
+      <div class="date-divider">Today</div>
+
+      <!-- Incoming — Dajon -->
+      <div class="msg-group in">
+        <div class="msg-bubble">Hey, thank you so much for being a beta tester for Reazyn. It genuinely means a lot at this stage.</div>
+        <div class="msg-time">10:42 AM</div>
+      </div>
+
+      <!-- Outgoing — Test User -->
+      <div class="msg-group out">
+        <div class="msg-bubble">Of course! Honestly I've been enjoying it more than I expected. The Modus Ponens problems were good practice for me after learning about conditionals in my logic textbook.</div>
+        <div class="msg-time">10:44 AM</div>
+      </div>
+
+      <!-- Incoming -->
+      <div class="msg-group in">
+        <div class="msg-bubble">That's good to hear. Conjunction Introduction and Elimination are live now too if you want to try those next.</div>
+        <div class="msg-time">10:45 AM</div>
+      </div>
+
+      <!-- Outgoing -->
+      <div class="msg-group out">
+        <div class="msg-bubble">I already tried that out. The one where you chain Conjunction into Modus Ponens, I loved that it actually made me stop and think for a second.</div>
+        <div class="msg-time">10:47 AM</div>
+      </div>
+
+      <!-- Incoming -->
+      <div class="msg-group in">
+        <div class="msg-bubble">I do love the complexity as well. I plan on creating more chained problems.</div>
+        <div class="msg-time">10:48 AM</div>
+      </div>
+
+      <!-- Outgoing -->
+      <div class="msg-group out">
+        <div class="msg-bubble">Those are fun. When are the rest of the categories going live?</div>
+        <div class="msg-time">10:49 AM</div>
+      </div>
+
+      <!-- Incoming -->
+      <div class="msg-group in">
+        <div class="msg-bubble">I am working through them now. Deductive Logic will be finished first, then the rest follow. The vision for the full platform is all of those all thinking categories in one place.</div>
+        <div class="msg-time">10:51 AM</div>
+      </div>
+
+      <!-- Outgoing -->
+      <div class="msg-group out">
+        <div class="msg-bubble">Keep building! I'll keep testing.</div>
+        <div class="msg-time">10:52 AM</div>
+      </div>
+
+      <!-- Incoming -->
+      <div class="msg-group in">
+        <div class="msg-bubble">Thank you. Have fun!</div>
+        <div class="msg-time">10:52 AM</div>
+      </div>
+
+    </div>
+
+    <!-- INPUT -->
+    <div class="chat-input-wrap">
+      <input class="chat-input" type="text" placeholder="Message Dajon...">
+      <button class="send-btn">➤</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function toggleProfile(e) {
+    e.stopPropagation();
+    document.getElementById('nav-user').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('nav-user').classList.remove('open');
+  });
+
+  function toggleTheme() {
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const isDark = root.classList.toggle('dark');
+    btn.textContent = isDark ? '🌙' : '☀️';
+  }
+
+  // Scroll to bottom of messages on load
+  const msgs = document.getElementById('chat-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Send message (UI only)
+  const input = document.querySelector('.chat-input');
+  const sendBtn = document.querySelector('.send-btn');
+
+  function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    const group = document.createElement('div');
+    group.className = 'msg-group out';
+    group.innerHTML = `
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-time">Just now</div>
+    `;
+    msgs.appendChild(group);
+    msgs.scrollTop = msgs.scrollHeight;
+    input.value = '';
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  function selectChat(name) {
+    document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+</script>
+</body>
+</html>
