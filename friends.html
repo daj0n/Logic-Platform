@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reazyn — Friends</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3f9;
+    --surface: #ffffff;
+    --surface2: #ede9f6;
+    --border: #d9d3eb;
+    --accent: #6b45b8;
+    --accent2: #9270d8;
+    --accent-glow: rgba(107, 69, 184, 0.1);
+    --text: #1a1626;
+    --text-dim: #5a5270;
+    --text-dimmer: #9b93b0;
+    --green: #1a8a5a;
+    --red: #cc3333;
+    --nav-bg: rgba(245, 243, 249, 0.92);
+  }
+
+  :root.dark {
+    --bg: #0f0e11;
+    --surface: #1a1820;
+    --surface2: #22202a;
+    --border: #2e2b38;
+    --accent: #c8b8ff;
+    --accent2: #7c5cbf;
+    --accent-glow: rgba(200, 184, 255, 0.15);
+    --text: #ede9f6;
+    --text-dim: #8b8499;
+    --text-dimmer: #4f4a5c;
+    --green: #6fefb8;
+    --red: #ff7b7b;
+    --nav-bg: rgba(15, 14, 17, 0.88);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+    background-image:
+      radial-gradient(ellipse 55% 35% at 75% -5%, rgba(146, 112, 216, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 35% 25% at 5% 85%, rgba(107, 69, 184, 0.06) 0%, transparent 55%);
+  }
+
+  :root.dark body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 70% -10%, rgba(124, 92, 191, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(200, 184, 255, 0.06) 0%, transparent 60%);
+  }
+
+  nav {
+    display: flex; align-items: center;
+    padding: 0 2.5rem; height: 60px;
+    border-bottom: 1px solid var(--border);
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+    gap: 2rem;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .nav-brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 0.02em; white-space: nowrap; margin-right: auto; text-decoration: none; }
+  .nav-links { display: flex; gap: 0.25rem; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--text-dim); font-size: 0.88rem; font-weight: 500; padding: 0.4rem 0.9rem; border-radius: 6px; transition: all 0.18s; }
+  .nav-links a:hover { color: var(--text); background: var(--surface2); }
+  .nav-links a.active { color: var(--accent); background: var(--accent-glow); }
+  .nav-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+
+  .theme-toggle { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; font-size: 0.95rem; }
+  .theme-toggle:hover { border-color: var(--accent2); color: var(--accent); background: var(--accent-glow); }
+
+  .nav-user { position: relative; display: flex; align-items: center; gap: 0.55rem; font-size: 0.85rem; color: var(--text-dim); font-weight: 500; cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid transparent; transition: all 0.18s; user-select: none; }
+  .nav-user:hover, .nav-user.open { background: var(--surface2); border-color: var(--border); }
+  .avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600; color: #fff; flex-shrink: 0; }
+
+  .profile-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 200; overflow: hidden; animation: dropIn 0.18s ease forwards; }
+  :root.dark .profile-dropdown { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  @keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .nav-user.open .profile-dropdown { display: block; }
+  .dropdown-header { padding: 0.9rem 1rem 0.7rem; border-bottom: 1px solid var(--border); }
+  .dropdown-name { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .dropdown-handle { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dimmer); margin-top: 0.15rem; }
+  .dropdown-items { padding: 0.4rem 0; }
+  .dropdown-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--text-dim); cursor: pointer; transition: background 0.13s, color 0.13s; text-decoration: none; }
+  .dropdown-item:hover { background: var(--surface2); color: var(--text); }
+  .dropdown-item.signout { border-top: 1px solid var(--border); margin-top: 0.3rem; color: var(--red); }
+  .dropdown-item.signout:hover { background: rgba(204,51,51,0.06); color: var(--red); }
+  .dropdown-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+
+  /* PAGE */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3.5rem 2rem 5rem;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .page-title-wrap {}
+
+  .page-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent2); margin-bottom: 0.4rem; }
+
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--text); line-height: 1.15; }
+
+  .friend-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dimmer);
+    margin-top: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative;
+    width: 220px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: border-color 0.18s, background 0.3s;
+    outline: none;
+  }
+
+  .search-input:focus { border-color: var(--accent2); }
+  .search-input::placeholder { color: var(--text-dimmer); }
+
+  .search-icon {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dimmer);
+    font-size: 0.8rem;
+    pointer-events: none;
+  }
+
+  /* FRIENDS GRID */
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+  }
+
+  /* FRIEND CARD */
+  .friend-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    text-decoration: none;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+  }
+
+  .friend-card:hover {
+    border-color: var(--accent2);
+    background: var(--surface2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(107, 69, 184, 0.1);
+  }
+
+  :root.dark .friend-card:hover {
+    box-shadow: 0 6px 24px rgba(200, 184, 255, 0.08);
+  }
+
+  .friend-card.placeholder {
+    border-style: dashed;
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .friend-card.placeholder:hover {
+    transform: none;
+    border-color: var(--border);
+    background: var(--surface);
+    box-shadow: none;
+  }
+
+  /* AVATAR */
+  .friend-card-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--surface);
+    transition: border-color 0.3s;
+  }
+
+  .friend-card-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .friend-card-handle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dimmer);
+    text-align: center;
+  }
+
+  .friend-card-affiliation {
+    font-size: 0.7rem;
+    color: var(--accent2);
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .friend-card-stats {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.2rem;
+  }
+
+  .fcs {
+    text-align: center;
+  }
+
+  .fcs-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .fcs-lbl {
+    font-size: 0.62rem;
+    color: var(--text-dimmer);
+    margin-top: 0.15rem;
+    letter-spacing: 0.04em;
+  }
+
+  .friend-card-divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* PLACEHOLDER ICON */
+  .placeholder-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: var(--text-dimmer);
+  }
+
+  .placeholder-text {
+    font-size: 0.82rem;
+    color: var(--text-dimmer);
+    text-align: center;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="https://daj0n.github.io/Reazyn/index.html">Reazyn</a>
+  <ul class="nav-links">
+    <li><a href="https://daj0n.github.io/Reazyn/index.html">Play</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/learn.html">Learn</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/community.html">Community</a></li>
+    <li><a href="https://daj0n.github.io/Reazyn/leaderboard.html">Leaderboard</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+    <div class="nav-user" id="nav-user" onclick="toggleProfile(event)">
+      <div class="avatar-sm">TU</div>
+      Test User
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-name">Test User</div>
+          <div class="dropdown-handle">@testuser</div>
+        </div>
+        <div class="dropdown-items">
+          <a href="https://daj0n.github.io/Reazyn/profile.html" class="dropdown-item"><span class="dropdown-icon">👤</span> Profile</a>
+          <a href="https://daj0n.github.io/Reazyn/friends.html" class="dropdown-item active-item"><span class="dropdown-icon">👥</span> Friends</a>
+          <a href="https://daj0n.github.io/Reazyn/chats.html" class="dropdown-item"><span class="dropdown-icon">💬</span> Chats</a>
+          <a href="#" class="dropdown-item signout"><span class="dropdown-icon">↩</span> Sign out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="page-title-wrap">
+      <div class="page-label">Your Network</div>
+      <h1 class="page-title">Friends</h1>
+      <div class="friend-count">4 friends</div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="Search friends...">
+    </div>
+  </div>
+
+  <div class="friends-grid">
+
+    <!-- Dajon -->
+    <a href="#" class="friend-card">
+      <div class="friend-card-avatar" style="background: linear-gradient(135deg, #1a7a6e, #6fefcf);">
+        D
+        <span class="online-dot"></span>
+      </div>
+      <div class="friend-card-name">Dajon</div>
+      <div class="friend-card-handle">@dajon</div>
+      <div class="friend-card-affiliation">Reazyn Beta Testers</div>
+      <div class="friend-card-divider"></div>
+      <div class="friend-card-stats">
+        <div class="fcs">
+          <div class="fcs-num">312</div>
+          <div class="fcs-lbl">Problems</div>
+        </div>
+        <div class="fcs">
+          <div class="fcs-num">91%</div>
+          <div class="fcs-lbl">Accuracy</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- Placeholder 1 -->
+    <div class="friend-card placeholder">
+      <div class="placeholder-icon">👤</div>
+      <div class="placeholder-text">Friend here</div>
+      <div class="friend-card-handle">@friendhere</div>
+      <div class="friend-card-divider"></div>
+      <div class="friend-card-stats">
+        <div class="fcs">
+          <div class="fcs-num">—</div>
+          <div class="fcs-lbl">Problems</div>
+        </div>
+        <div class="fcs">
+          <div class="fcs-num">—</div>
+          <div class="fcs-lbl">Accuracy</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placeholder 2 -->
+    <div class="friend-card placeholder">
+      <div class="placeholder-icon">👤</div>
+      <div class="placeholder-text">Friend here</div>
+      <div class="friend-card-handle">@friendhere</div>
+      <div class="friend-card-divider"></div>
+      <div class="friend-card-stats">
+        <div class="fcs">
+          <div class="fcs-num">—</div>
+          <div class="fcs-lbl">Problems</div>
+        </div>
+        <div class="fcs">
+          <div class="fcs-num">—</div>
+          <div class="fcs-lbl">Accuracy</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placeholder 3 -->
+    <div class="friend-card placeholder">
+      <div class="placeholder-icon">👤</div>
+      <div class="placeholder-text">Friend here</div>
+      <div class="friend-card-handle">@friendhere</div>
+      <div class="friend-card-divider"></div>
+      <div class="friend-card-stats">
+        <div class="fcs">
+          <div class="fcs-num">—</div>
+          <div class="fcs-lbl">Problems</div>
+        </div>
+        <div class="fcs">
+          <div class="fcs-num">—</div>
+          <div class="fcs-lbl">Accuracy</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  function toggleProfile(e) {
+    e.stopPropagation();
+    document.getElementById('nav-user').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('nav-user').classList.remove('open');
+  });
+
+  function toggleTheme() {
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const isDark = root.classList.toggle('dark');
+    btn.textContent = isDark ? '🌙' : '☀️';
+  }
+</script>
+</body>
+</html>
